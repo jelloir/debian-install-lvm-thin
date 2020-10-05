@@ -71,7 +71,7 @@ Copy `thin_check` into `/usr/sbin/` and make executeable
     cp /usb/thin/thin_check /usr/sbin/
     chmod +x /usr/sbin/thin_check
 
-Use fdisk to create 3 partitions (assumes UEFI so adjust for your needs).
+Use fdisk to create 3 partitions (assumes UEFI, adjust for your needs).
 
     Device     Boot   Start      End  Sectors  Size Id Type
     /dev/sda1          2048  1050623  1048576  512M ef EFI (FAT-12/16/32)
@@ -80,29 +80,29 @@ Use fdisk to create 3 partitions (assumes UEFI so adjust for your needs).
 
 Then proceed to create our LVM structure.
 
-pvcreate /dev/sda3
-vgcreate vg0drg56 /dev/sda3
+    pvcreate /dev/sda3
+    vgcreate vg0drg56 /dev/sda3
 
 Create a contiguous swap partition first on LVM
 
-lvcreate --name swap --size 1GiB --contiguous y vg0drg56
+    lvcreate --name swap --size 1GiB --contiguous y vg0drg56
 
 Then create the thin pool for our thin volumes with a decent pool meta data size - you never ever want to run out of this!!
 
-lvcreate --thin-pool tpool0 --extents +100%FREE --poolmetadatasize 256M vg0drg56
+    lvcreate --thin-pool tpool0 --extents +100%FREE --poolmetadatasize 256M vg0drg56
 
-Then create the remaining as LVM thin.
+    Then create the remaining as LVM thin.
 
-lvcreate --thin --name root --virtualsize 20GiB vg0drg56/tpool0
-lvcreate --thin --name var_cache --virtualsize 4GiB vg0drg56/tpool0
-lvcreate --thin --name var_log --virtualsize 4GiB vg0drg56/tpool0
-lvcreate --thin --name home --virtualsize 100GiB vg0drg56/tpool0
+    lvcreate --thin --name root --virtualsize 20GiB vg0drg56/tpool0
+    lvcreate --thin --name var_cache --virtualsize 4GiB vg0drg56/tpool0
+    lvcreate --thin --name var_log --virtualsize 4GiB vg0drg56/tpool0
+    lvcreate --thin --name home --virtualsize 100GiB vg0drg56/tpool0
 
 Note that you can over provision the storage - cool hey!
 
 Now that LVM is setup go back to the UI and format the partitions including the EFI partion and the 512M volume after it which should be mounted as /boot
 
-
+```
 LVM VG vg0drg56, LV home - 107.4 GB Linux device-mapper (thin)
 >     #1           107.4 GB     f  ext4    /home
 LVM VG vg0drg56, LV root - 21.5 GB Linux device-mapper (thin)
@@ -127,23 +127,25 @@ SCSI1 (0,0,0) (sda) - 12.9 GB ATA VBOX HARDDISK
 >     #1  primary  536.9 MB  B  f  ESP
 >     #2  primary  536.9 MB     f  ext4    /boot
 >     #3  primary   11.8 GB     K  lvm
+```
 
 Complete the install process.
 
 After it has installed the base system you can copy lvm2thin into place so the required lvm thin components are included in initramfs 
 
-cp /usb/thin/lvm2thin /target/etc/initramfs-tools/hooks/
+    cp /usb/thin/lvm2thin /target/etc/initramfs-tools/hooks/
 
 Then chroot to the install to install thin-provisioning-tools and update the initramfs
 
-chroot /target /bin/bash
-apt-get install thin-provisioning-tools
-update-initramfs -u
+    chroot /target /bin/bash
+    apt-get install thin-provisioning-tools
+    update-initramfs -u
 
 Exit the chroot and complete the install to boot to your thin provision setup yeah!
 
 after you reboot have a look at your slender setup!
 
+```
 sudo lvs -a
   LV              VG       Attr       LSize   Pool   Origin Data%  Meta%  Move Log Cpy%Sync Convert
   home            vg0drg56 Vwi-aotz-- 100.00g tpool0        2.07
@@ -156,25 +158,23 @@ sudo lvs -a
   [tpool0_tmeta]  vg0drg56 ewi-ao---- 256.00m
   var_cache       vg0drg56 Vwi-aotz--   4.00g tpool0        9.46
   var_log         vg0drg56 Vwi-aotz--   4.00g tpool0        3.59
-  
-And now for the really cool stuff!
+```
+### Install snapper
 
-Install snapper
+    apt-get install snapper
 
-apt-get install snapper
+Create configs for `/` and `/home`.  By default it will begin taking snapshots every hour on the hour.  If you don't want this happening 
 
-Create configs for / and /home.  By default it will begin taking snapshots every hour on the hour.  If you don't want this happening 
+    sudo snapper --config root create-config --fstype='lvm(ext4)' /
+    sudo snapper --config home create-config --fstype='lvm(ext4)' /home
 
-sudo snapper --config root create-config --fstype='lvm(ext4)' /
-sudo snapper --config home create-config --fstype='lvm(ext4)' /home
+I don't need hourly snapshots of `/` so I disable it.
 
-I don't need hourly snapshots of / so I disable it.
-
-sudo snapper --config root set-config TIMELINE_CREATE="no"
+    sudo snapper --config root set-config TIMELINE_CREATE="no"
 
 Then I create a permanent snapshot of the system when I first installed with minimal config.
 
-sudo snapper --config root create --description minimal
+    sudo snapper --config root create --description minimal
 
 apt also has a hook that takes a snapshot when you install software, so for fun lets install kde and then rollback to our minimal install.
 
