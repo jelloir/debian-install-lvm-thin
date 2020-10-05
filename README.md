@@ -1,25 +1,28 @@
-Debian Install LVM Thin-Provision
-=================================
-Description
------------
+# Debian Install LVM Thin-Provision
+
+## Description
 Guide to installing Debian onto and thin-provisioned lvm pool.
 
-Extract the following files from the latest linux-image referenced at https://packages.debian.org/buster/linux-image-amd64 or you could grab them from another running Debian system.
-
-```dm-bio-prison.ko
+### Kernel Modules
+Extract the following modules from the latest linux-image referenced at https://packages.debian.org/buster/linux-image-amd64 or you get them from another running Debian system.
+```
+dm-bio-prison.ko
 dm-persistent-data.ko
-dm-thin-pool.ko```
-
+dm-thin-pool.ko
+```
 They must be the from the same kernel version as the installer kernel version or they will not load.
 
+### thin_check
 Extract the following file from https://packages.debian.org/buster/thin-provisioning-tools
 
-thin_check
+`thin_check`
 
 Place the files on media to copy them from during the install.
 
+### lvm2thin
 Create the following bash script and save it to your media with the name "lvm2thin"
 
+```shell
 #!/bin/sh
 
 PREREQ="lvm2"
@@ -40,6 +43,7 @@ esac
 
 copy_exec /usr/sbin/thin_check
 manual_add_modules dm_thin_pool
+```
 
 Boot the Debian installer and proceed up until you have reached partition disks and then switch to another console e.g. ALT-F2
 
