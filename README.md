@@ -3,6 +3,13 @@
 ## Description
 Guide to installing Debian onto and thin-provisioned lvm pool.
 
+### Create USB Installer
+Download the latest debian-10.X.X-amd64-netinst.iso from https://cdimage.debian.org/debian-cd/current/amd64/iso-cd/ and create a bootable USB in ISO image mode so you can add files to it.
+
+### Create "thin" folder
+
+make a directory called "thin" on the root of the USB drive.
+
 ### Kernel Modules
 Extract the following modules from the latest linux-image referenced at https://packages.debian.org/buster/linux-image-amd64 or you get them from another running Debian system.
 
@@ -10,17 +17,20 @@ Extract the following modules from the latest linux-image referenced at https://
     dm-persistent-data.ko
     dm-thin-pool.ko
 
-They must be the from the same kernel version as the installer kernel version or they will not load.
+**They must be the from the same kernel version as the installer kernel version or they will not load.**
+
+Copy these files to "thin" on the USB
+
 
 ### thin_check
 Extract the following file from https://packages.debian.org/buster/thin-provisioning-tools
 
     thin_check
 
-Place the files on media to copy them from during the install.
+Copy the file to "thin" on the USB
 
 ### lvm2thin
-Create the following bash script and save it to your media with the name "lvm2thin"
+Create the following bash script and save it to "thin" on the USB with the name "lvm2thin"
 
 ```shell
 #!/bin/sh
@@ -44,6 +54,7 @@ esac
 copy_exec /usr/sbin/thin_check
 manual_add_modules dm_thin_pool
 ```
+
 ### Install
 Boot the Debian installer and proceed up until you have reached **partition disks** and then switch to another console e.g. `ALT-F2`
 mount the media with the files you've copied.  I'm using `/usb` and the files are in a folder called thin.  Then copy the files into the installer kernel modules path.
