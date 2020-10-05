@@ -5,17 +5,17 @@ Guide to installing Debian onto and thin-provisioned lvm pool.
 
 ### Kernel Modules
 Extract the following modules from the latest linux-image referenced at https://packages.debian.org/buster/linux-image-amd64 or you get them from another running Debian system.
-```
-dm-bio-prison.ko
-dm-persistent-data.ko
-dm-thin-pool.ko
-```
+
+    dm-bio-prison.ko
+    dm-persistent-data.ko
+    dm-thin-pool.ko
+
 They must be the from the same kernel version as the installer kernel version or they will not load.
 
 ### thin_check
 Extract the following file from https://packages.debian.org/buster/thin-provisioning-tools
 
-`thin_check`
+    thin_check
 
 Place the files on media to copy them from during the install.
 
@@ -44,19 +44,18 @@ esac
 copy_exec /usr/sbin/thin_check
 manual_add_modules dm_thin_pool
 ```
+### Install
+Boot the Debian installer and proceed up until you have reached partition disks and then switch to another console e.g. `ALT-F2`
+mount the media with the files you've copied.  I'm using `/usb` and the files are in a folder called thin.  Then copy the files into the installer kernel modules path.
 
-Boot the Debian installer and proceed up until you have reached partition disks and then switch to another console e.g. ALT-F2
-
-mount the media with the files you've copied.  I'm using /usb and the files are in a folder called thin.  Then copy the files into the installer kernel modules path.
-
-mount /dev/sdb1 /usb
-cp /usb/thin/*.ko /lib/modules/4.9.0-3-amd64/
+    mount /dev/sdb1 /usb
+    cp /usb/thin/*.ko /lib/modules/4.9.0-3-amd64/
 
 Then probe all modules
 
-depmod -a
+    depmod -a
 
-cp thin_check into /usr/sbin/ and make executeable
+Copy `thin_check` into `/usr/sbin/` and make executeable
 
 cp /usb/thin/thin_check /usr/sbin/
 chmod +x /usr/sbin/thin_check
