@@ -45,7 +45,7 @@ copy_exec /usr/sbin/thin_check
 manual_add_modules dm_thin_pool
 ```
 ### Install
-Boot the Debian installer and proceed up until you have reached partition disks and then switch to another console e.g. `ALT-F2`
+Boot the Debian installer and proceed up until you have reached **partition disks** and then switch to another console e.g. `ALT-F2`
 mount the media with the files you've copied.  I'm using `/usb` and the files are in a folder called thin.  Then copy the files into the installer kernel modules path.
 
     mount /dev/sdb1 /usb
@@ -57,17 +57,17 @@ Then probe all modules
 
 Copy `thin_check` into `/usr/sbin/` and make executeable
 
-cp /usb/thin/thin_check /usr/sbin/
-chmod +x /usr/sbin/thin_check
+    cp /usb/thin/thin_check /usr/sbin/
+    chmod +x /usr/sbin/thin_check
 
-Use fdisk to create 3 partitions as follows assuming your on a UEFI system (adjust for your needs).
+Use fdisk to create 3 partitions (assumes UEFI so adjust for your needs).
 
-Device     Boot   Start      End  Sectors  Size Id Type
-/dev/sda1          2048  1050623  1048576  512M ef EFI (FAT-12/16/32)
-/dev/sda2       1050624  2099199  1048576  512M 83 Linux
-/dev/sda3       2099200 25165823 23066624   11G 8e Linux LVM
+    Device     Boot   Start      End  Sectors  Size Id Type
+    /dev/sda1          2048  1050623  1048576  512M ef EFI (FAT-12/16/32)
+    /dev/sda2       1050624  2099199  1048576  512M 83 Linux
+    /dev/sda3       2099200 25165823 23066624   11G 8e Linux LVM
 
-The proceed to create our LVM structure.
+Then proceed to create our LVM structure.
 
 pvcreate /dev/sda3
 vgcreate vg0drg56 /dev/sda3
